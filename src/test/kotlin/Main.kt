@@ -3,7 +3,7 @@ package br.com.devsrsouza.svg2compose
 import java.io.File
 
 fun main() {
-    val iconTest = File("raw-icons4")
+    val iconTest = File("icon-test")
     val src = File("build/generated-icons").apply { mkdirs() }
 
     Svg2Compose.parse(

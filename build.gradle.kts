@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.5.21"
+    kotlin("jvm") version "1.8.21"
     id("maven-publish")
 }
 
@@ -15,11 +15,13 @@ repositories {
 }
 
 dependencies {
-    implementation("com.google.guava:guava:23.0")
-    implementation("com.android.tools:sdk-common:27.2.0-alpha16")
-    implementation("com.android.tools:common:27.2.0-alpha16")
-    implementation("com.squareup:kotlinpoet:1.9.0")
-    implementation("org.ogce:xpp3:1.1.6")
+    implementation("com.google.guava:guava:31.1-jre")
+    implementation("com.android.tools:sdk-common:31.1.0-beta02")
+    implementation("com.android.tools:common:31.1.0-beta02")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.21")
+    implementation("com.squareup:kotlinpoet:1.12.0")
+    implementation("xpp3:xpp3:1.1.4c")
+    implementation("xmlpull:xmlpull:1.1.3.1")
 
     testImplementation(kotlin("test-junit"))
 }
@@ -29,7 +31,7 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile>() {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "11"
 }
 
 publishing {

@@ -22,7 +22,7 @@ import androidx.compose.material.icons.generator.vector.Fill
 import androidx.compose.material.icons.generator.vector.Vector
 import androidx.compose.material.icons.generator.vector.VectorNode
 import com.squareup.kotlinpoet.*
-import java.util.Locale
+import java.util.*
 
 data class VectorAssetGenerationResult(
     val sourceGeneration: FileSpec, val accessProperty: String
@@ -70,6 +70,14 @@ class VectorAssetGenerator(
                 .build()
         ).addProperty(
             backingProperty
+        ).addFunction(
+            FunSpec.builder("preview")
+                .addModifiers(KModifier.PRIVATE)
+                .addAnnotation(ClassName("androidx.compose.ui.tooling.preview", "Preview"))
+                .addAnnotation(ClassName("androidx.compose.runtime", "Composable"))
+                .addCode(buildCodeBlock {
+                    addStatement("Icon(imageVector = %N)", "${groupClassName.simpleName}$iconName")
+                }).build()
         ).setIndent().build()
 
         return VectorAssetGenerationResult(generation, iconName)
@@ -132,6 +140,7 @@ private fun CodeBlock.Builder.addRecursively(vectorNode: VectorNode) {
             }
             endControlFlow()
         }
+
         is VectorNode.Path -> {
             addPath(vectorNode) {
                 vectorNode.nodes.forEach { pathNode ->
@@ -155,7 +164,7 @@ private fun CodeBlock.Builder.addPath(
     val parameterList = with(path) {
         listOfNotNull(
             "fill = ${getPathFill(path)}",
-            "stroke = ${if(hasStrokeColor) "%M(%M(0x$strokeColorHex))" else "null"}",
+            "stroke = ${if (hasStrokeColor) "%M(%M(0x$strokeColorHex))" else "null"}",
             "fillAlpha = ${fillAlpha}f".takeIf { fillAlpha != 1f },
             "strokeAlpha = ${strokeAlpha}f".takeIf { strokeAlpha != 1f },
             "strokeLineWidth = ${strokeLineWidth.withMemberIfNotNull}",
@@ -178,11 +187,12 @@ private fun CodeBlock.Builder.addPath(
         path.fillType.memberName
     ).toMutableList().apply {
         var fillIndex = 1
-        when (path.fill){
+        when (path.fill) {
             is Fill.Color -> {
                 add(fillIndex, MemberNames.SolidColor)
                 add(++fillIndex, MemberNames.Color)
             }
+
             is Fill.LinearGradient -> {
                 add(fillIndex, MemberNames.LinearGradient)
                 path.fill.colorStops.forEach { _ ->
@@ -191,6 +201,7 @@ private fun CodeBlock.Builder.addPath(
                 add(++fillIndex, MemberNames.Offset)
                 add(++fillIndex, MemberNames.Offset)
             }
+
             is Fill.RadialGradient -> {
                 add(fillIndex, MemberNames.RadialGradient)
                 path.fill.colorStops.forEach { _ ->
@@ -198,38 +209,41 @@ private fun CodeBlock.Builder.addPath(
                 }
                 add(++fillIndex, MemberNames.Offset)
             }
+
             null -> {}
         }
     }.toTypedArray()
 
     beginControlFlow(
         "%M$parameters",
-       *members
+        *members
     )
 
     pathBody()
     endControlFlow()
 }
 
-private fun getPathFill (
+private fun getPathFill(
     path: VectorNode.Path
-) = when (path.fill){
+) = when (path.fill) {
     is Fill.Color -> "%M(%M(0x${path.fill.colorHex}))"
     is Fill.LinearGradient -> {
-        with (path.fill){
+        with(path.fill) {
             "%M(" +
-                    "${getGradientStops(path.fill.colorStops).toString().removeSurrounding("[","]")}, " +
+                    "${getGradientStops(path.fill.colorStops).toString().removeSurrounding("[", "]")}, " +
                     "start = %M(${startX}f,${startY}f), " +
                     "end = %M(${endX}f,${endY}f))"
         }
     }
+
     is Fill.RadialGradient -> {
-        with (path.fill){
-            "%M(${getGradientStops(path.fill.colorStops).toString().removeSurrounding("[","]")}, " +
+        with(path.fill) {
+            "%M(${getGradientStops(path.fill.colorStops).toString().removeSurrounding("[", "]")}, " +
                     "center = %M(${centerX}f,${centerY}f), " +
                     "radius = ${gradientRadius}f)"
         }
     }
+
     else -> "null"
 }
 
@@ -242,7 +256,7 @@ private fun getGradientStops(
 private fun CodeBlock.Builder.addLinearGradient(
     gradient: Fill.LinearGradient,
     pathBody: CodeBlock.Builder.() -> Unit
-){
+) {
     //"0.0f to Color.Red"
     val parameterList = with(gradient) {
         listOfNotNull(
