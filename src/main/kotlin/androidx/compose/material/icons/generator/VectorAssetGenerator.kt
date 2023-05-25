@@ -71,14 +71,17 @@ class VectorAssetGenerator(
         ).addProperty(
             backingProperty
         ).addFunction(
-            FunSpec.builder("preview")
+            FunSpec.builder("Preview")
                 .addModifiers(KModifier.PRIVATE)
                 .addAnnotation(ClassName("androidx.compose.ui.tooling.preview", "Preview"))
                 .addAnnotation(ClassName("androidx.compose.runtime", "Composable"))
                 .addCode(buildCodeBlock {
-                    addStatement("Icon(imageVector = %N)", "${groupClassName.simpleName}$iconName")
+                    addStatement(
+                        "Icon(imageVector = ${groupClassName.simpleName}.$iconName,contentDescription = null)"
+                    )
                 }).build()
-        ).setIndent().build()
+        ).addImport("androidx.compose.material3", "Icon")
+            .setIndent().build()
 
         return VectorAssetGenerationResult(generation, iconName)
     }
